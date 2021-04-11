@@ -3,7 +3,7 @@ from django.shortcuts import HttpResponse
 
 import openpyxl
 import pandas as pd
-
+pd.options.display.float_format = '{:,.0f}'.format
 def index(request):
     if "GET" == request.method:
         return render(request, 'myapp/index.html', {})
@@ -12,17 +12,25 @@ def index(request):
 
         # you may put validations here to check extension or file size
 
-        excel_data=pd.read_excel(excel_file).describe().to_html()
+        excel_data=pd.read_excel(excel_file)
+        describe=excel_data.describe().to_html()
+        pd.options.display.float_format = '{:,.0f}'.format
+        summary=excel_data.groupby(['Supplier Name'])['Total Value'].sum().reset_index().to_html()
+        pd.options.display.float_format = '{:,.0f}'.format
+        summary_date=excel_data.groupby(['IGP Date'])['Total Value'].sum().reset_index().to_html()
+        #summary['Value']=summary['Value'].astype(int)/100000
 
-        # getting all sheets
+
+        response=HttpResponse()
         
-        # getting a particular sheet
+        response.write("<h1>Statistics</h1>")
+        response.write(describe)
+        response.write("<BR/><H1>Summary by supplier</H1>")
+        response.write(summary)
+        response.write("<BR/><H1>Summary by Date</H1>")
+        response.write(summary_date)
         
-        # iterating over the rows and
-        # getting value from each cell in row
-        
-        return HttpResponse(excel_data)
-        #return render(request, 'myapp/index.html', {"excel_data":excel_data})
+        return response
 
 
 
